@@ -1,10 +1,10 @@
 package com.myorg;
 
+import software.amazon.awscdk.CfnOutput;
 import software.constructs.Construct;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
-// import software.amazon.awscdk.Duration;
-// import software.amazon.awscdk.services.sqs.Queue;
+import software.amazon.awscdk.services.s3.Bucket;
 
 public class EtlS3ToRedshiftStack extends Stack {
     public EtlS3ToRedshiftStack(final Construct scope, final String id) {
@@ -14,11 +14,26 @@ public class EtlS3ToRedshiftStack extends Stack {
     public EtlS3ToRedshiftStack(final Construct scope, final String id, final StackProps props) {
         super(scope, id, props);
 
-        // The code that defines your stack goes here
+        final Bucket rawBucket = Bucket.Builder
+                .create(this, "rawBucket")
+                .bucketName("keshavkb2-ab302-raw")
+                .build();
+        CfnOutput.Builder
+                .create(this, "rawBucketName")
+                .exportName("RawBucketName")
+                .value(rawBucket.getBucketName())
+                .build();
 
-        // example resource
-        // final Queue queue = Queue.Builder.create(this, "EtlS3ToRedshiftQueue")
-        //         .visibilityTimeout(Duration.seconds(300))
-        //         .build();
+        final Bucket processedBucket = Bucket.Builder
+                .create(this, "processedBucket")
+                .bucketName("keshavkb2-ab302-processed")
+                .build();
+        CfnOutput.Builder
+                .create(this, "processedBucketName")
+                .exportName("ProcessedBucketName")
+                .value(processedBucket.getBucketName())
+                .build();
+
+
     }
 }
