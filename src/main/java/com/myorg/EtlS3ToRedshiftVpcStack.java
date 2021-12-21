@@ -54,7 +54,17 @@ public class EtlS3ToRedshiftVpcStack extends Stack {
                                 .allowFrom(Peer.ipv4("54.240.199.108/32"), Port.tcp(22),
                                            "Allow SSH from my ip");
 
+        final SecurityGroup privateSecurityGroup = SecurityGroup.Builder
+                .create(this, "privateSecurityGroup")
+                .securityGroupName("Ab302PrivateSG")
+                .description("Private Security Group")
+                .vpc(ab302Vpc)
+                .allowAllOutbound(true)
+                .build();
+
+        privateSecurityGroup.getConnections()
+                            .allowInternally(Port.allTraffic());
+        privateSecurityGroup.getConnections()
+                            .allowFrom(bastionHostSecurityGroup, Port.tcp(5439), "Redshift");
     }
-
-
 }
