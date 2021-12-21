@@ -2,9 +2,11 @@ package com.myorg;
 
 import org.jetbrains.annotations.Nullable;
 import software.amazon.awscdk.CfnOutput;
+import software.amazon.awscdk.Fn;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.services.ec2.*;
+import software.amazon.awscdk.services.iam.Role;
 import software.constructs.Construct;
 
 import java.util.List;
@@ -66,5 +68,24 @@ public class EtlS3ToRedshiftVpcStack extends Stack {
                             .allowInternally(Port.allTraffic());
         privateSecurityGroup.getConnections()
                             .allowFrom(bastionHostSecurityGroup, Port.tcp(5439), "Redshift");
+
+        final Instance bastionHost = Instance.Builder
+                .create(this, "bastionHost")
+                .vpc(ab302Vpc)
+                .vpcSubnets(SubnetSelection.builder()
+                                           .subnetType(PUBLIC)
+                                           .build())
+                .instanceType(InstanceType.of(InstanceClass.BURSTABLE2, InstanceSize.MICRO))
+                .machineImage(MachineImage.latestAmazonLinux())
+                .keyName("keshavkb-2-singapore")
+                .securityGroup(bastionHostSecurityGroup)
+                .role(Role.fromRoleArn(this, "instanceRole", Fn.importValue("SSMManagedInstanceRoleArn")))
+                .build();
+
+        CfnOutput.Builder
+                .create(this, "bastionHostPublicIPAddress")
+                .exportName("BastionHostPublicIPAddress")
+                .value(bastionHost.getInstancePublicIp())
+                .build();
     }
 }
